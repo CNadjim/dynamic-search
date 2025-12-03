@@ -22,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/operating-systems")
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8080"})
 public class OperatingSystemController {
 
     // SearchGateway auto-configuré par le starter ! 🎉

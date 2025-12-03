@@ -46,7 +46,45 @@ dynamic-search/
 │   ├── adapter/                             # Adaptateurs Elasticsearch
 │   ├── criteria/                            # Criteria Elasticsearch
 │   └── factory/                             # Factory pour Elasticsearch
-└── dynamic-search-spring-boot-example       # Exemple d'utilisation
+└── dynamic-search-spring-boot-jpa-example   # Exemple JPA + React Frontend
+    ├── src/main/java                         # Backend Spring Boot
+    └── src/main/resources/webapp             # Frontend React + AG Grid
+```
+
+## 🖥️ Frontend React avec AG Grid
+
+![Frontend Screenshot](.github/assets/front.png)
+
+L'exemple JPA inclut une **interface web moderne** avec :
+- ✅ **AG Grid Infinite Row Model** - Pagination/tri/filtrage côté serveur
+- ✅ **Génération dynamique des colonnes** - Basée sur les métadonnées de l'API
+- ✅ **Filtres natifs AG Grid** - Mappés automatiquement vers l'API
+  - Texte : contains, equals, startsWith, endsWith, blank, notBlank
+  - Nombre : equals, lessThan, greaterThan, between
+  - Date : equals, lessThan, greaterThan, between (formatage automatique YYYY-MM-DD)
+  - Booléen : equals via selection
+- ✅ **Formatage automatique des dates** - AG Grid → API (suppression timestamp)
+- ✅ **Single JAR deployment** - Frontend compilé dans le JAR Spring Boot
+
+👉 Voir [FRONTEND.md](dynamic-search-spring-boot-jpa-example/FRONTEND.md) pour la documentation complète du frontend.
+
+### Démarrage Rapide du Frontend
+
+```bash
+# Méthode 1 : Tout-en-un (Maven build + frontend)
+cd dynamic-search-spring-boot-jpa-example
+mvn clean package
+java -jar target/dynamic-search-spring-boot-jpa-example-0.0.1-SNAPSHOT.jar
+# Accès : http://localhost:8080
+
+# Méthode 2 : Développement avec hot reload
+# Terminal 1 - Backend
+mvn spring-boot:run
+
+# Terminal 2 - Frontend
+cd src/main/resources/webapp
+npm run dev
+# Accès : http://localhost:5173
 ```
 
 ## 🚀 Quick Start
