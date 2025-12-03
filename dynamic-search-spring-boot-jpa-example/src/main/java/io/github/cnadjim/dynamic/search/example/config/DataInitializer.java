@@ -28,7 +28,7 @@ import java.util.Random;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.data.init.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(name = "app.data.init.enabled", havingValue = "true")
 public class DataInitializer {
 
     @PersistenceContext
@@ -65,12 +65,15 @@ public class DataInitializer {
                 .createQuery("SELECT COUNT(o) FROM OperatingSystemEntity o", Long.class)
                 .getSingleResult();
 
-        if (count > 0) {
+        if (count < TOTAL_RECORDS) {
             log.info("🗑️ Suppression de {} enregistrements existants...", count);
             int deleted = entityManager
                     .createQuery("DELETE FROM OperatingSystemEntity")
                     .executeUpdate();
             log.info("✅ {} enregistrements supprimés", deleted);
+        } else {
+            log.info("ℹ️ {} enregistrements déjà présents, pas d'initialisation nécessaire", count);
+            return;
         }
 
         int totalInserted = 0;

@@ -6,7 +6,7 @@
 
 Bibliothèque pour construire des **recherches dynamiques** avancées dans les applications **Spring Boot**.
 
-Support **JPA** (SQL) et **MongoDB** (NoSQL)
+Support **JPA** (SQL), **MongoDB** (NoSQL) et **Elasticsearch** (Search Engine)
 
 ## 🎯 Fonctionnalités
 
@@ -16,7 +16,7 @@ Support **JPA** (SQL) et **MongoDB** (NoSQL)
 - ✅ **Détection automatique des types** - Plus besoin de spécifier le fieldType
 - ✅ **Support multi-formats de dates** - ISO, formats européens, américains
 - ✅ **Architecture hexagonale** - Découplage domaine/infrastructure
-- ✅ **Support JPA et MongoDB** - Même API pour les deux
+- ✅ **Support JPA, MongoDB et Elasticsearch** - Même API pour tous
 - ✅ **Spring Boot Auto-configuration** - Configuration automatique
 - ✅ **Type-safe** - Utilisation d'enums pour les opérateurs
 
@@ -42,6 +42,10 @@ dynamic-search/
 │   ├── adapter/                             # Adaptateurs MongoDB
 │   ├── criteria/                            # Criteria MongoDB
 │   └── factory/                             # Factory pour MongoDB
+├── dynamic-search-spring-boot-elasticsearch-starter # Implémentation Elasticsearch
+│   ├── adapter/                             # Adaptateurs Elasticsearch
+│   ├── criteria/                            # Criteria Elasticsearch
+│   └── factory/                             # Factory pour Elasticsearch
 └── dynamic-search-spring-boot-example       # Exemple d'utilisation
 ```
 
@@ -63,6 +67,15 @@ dynamic-search/
 <dependency>
     <groupId>io.github.cnadjim</groupId>
     <artifactId>dynamic-search-spring-boot-mongo-starter</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
+
+**Pour Elasticsearch :**
+```xml
+<dependency>
+    <groupId>io.github.cnadjim</groupId>
+    <artifactId>dynamic-search-spring-boot-elasticsearch-starter</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 </dependency>
 ```
@@ -92,6 +105,24 @@ public class OperatingSystem {
 **MongoDB :**
 ```java
 @Document(collection = "operating_systems")
+@EnableSearchable  // Active la recherche dynamique
+public class OperatingSystem {
+    @Id
+    private String id;
+
+    private String name;
+    private String version;
+    private LocalDateTime releaseDate;
+    private Integer marketShare;
+    private Boolean isOpenSource;
+
+    // Getters/Setters...
+}
+```
+
+**Elasticsearch :**
+```java
+@Document(indexName = "operating_systems")
 @EnableSearchable  // Active la recherche dynamique
 public class OperatingSystem {
     @Id
@@ -270,17 +301,6 @@ Vous n'avez **plus besoin** de spécifier le `fieldType` dans vos requêtes ! La
 {
   "key": "releaseDate",
   "operator": "equals",
-  "value": "2019-11-05"
-}
-```
-
-Si vous souhaitez tout de même spécifier le type explicitement, c'est toujours possible :
-
-```json
-{
-  "key": "releaseDate",
-  "operator": "equals",
-  "fieldType": "date",
   "value": "2019-11-05"
 }
 ```

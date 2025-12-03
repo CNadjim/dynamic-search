@@ -23,9 +23,11 @@ public record FilterDescriptor(
         if (key == null || key.isBlank()) {
             throw new IllegalArgumentException("Filter key cannot be null or blank");
         }
+
         if (fieldType == null) {
             throw new IllegalArgumentException("Field type cannot be null");
         }
+
         if (availableOperators == null || availableOperators.isEmpty()) {
             throw new IllegalArgumentException("Available operators cannot be null or empty");
         }

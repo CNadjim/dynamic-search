@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping(value = "/api/operating-system", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/operating-systems")
 @RequiredArgsConstructor
 public class OperatingSystemController {
 
@@ -32,7 +32,7 @@ public class OperatingSystemController {
      * Permet au client de découvrir dynamiquement les champs filtrables
      * Retourne les descripteurs au format REST avec enums cohérents
      */
-    @GetMapping(value = "/filters")
+    @GetMapping(value = "/filters", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<FilterDescriptorResponse> getAvailableFilters() {
         log.info("Fetching available filters for OperatingSystemEntity");
         return searchGateway.getAvailableFilters(OperatingSystemEntity.class);
@@ -42,7 +42,7 @@ public class OperatingSystemController {
      * Endpoint de recherche dynamique
      * Le SearchGateway gère automatiquement la conversion et le dispatch
      */
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public SearchResult<OperatingSystemEntity> search(@Valid @RequestBody SearchRequest request) {
         log.info("Received search request with {} filters and {} sorts", request.getFilters().size(), request.getSorts().size());
         return searchGateway.search(request, OperatingSystemEntity.class);

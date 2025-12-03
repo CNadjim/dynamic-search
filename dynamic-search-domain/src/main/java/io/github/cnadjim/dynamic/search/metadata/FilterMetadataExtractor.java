@@ -60,6 +60,7 @@ public class FilterMetadataExtractor {
 
             // Si le champ a @Searchable, utiliser les métadonnées explicites
             Searchable searchable = field.getAnnotation(Searchable.class);
+
             if (searchable != null) {
                 String fieldName = searchable.fieldName().isEmpty()
                         ? field.getName()
@@ -161,16 +162,39 @@ public class FilterMetadataExtractor {
                     FilterOperator.STARTS_WITH,
                     FilterOperator.ENDS_WITH,
                     FilterOperator.IN,
-                    FilterOperator.NOT_IN
+                    FilterOperator.NOT_IN,
+                    FilterOperator.BLANK,
+                    FilterOperator.NOT_BLANK
             );
-            case NUMBER, DATE, BOOLEAN -> Set.of(
+            case BOOLEAN -> Set.of(
+                    FilterOperator.EQUALS,
+                    FilterOperator.NOT_EQUALS,
+                    FilterOperator.BLANK,
+                    FilterOperator.NOT_BLANK
+            );
+            case NUMBER -> Set.of(
+                    FilterOperator.CONTAINS,
+                    FilterOperator.NOT_CONTAINS,
                     FilterOperator.EQUALS,
                     FilterOperator.NOT_EQUALS,
                     FilterOperator.GREATER_THAN,
                     FilterOperator.LESS_THAN,
                     FilterOperator.IN,
                     FilterOperator.NOT_IN,
-                    FilterOperator.BETWEEN
+                    FilterOperator.BETWEEN,
+                    FilterOperator.BLANK,
+                    FilterOperator.NOT_BLANK
+            );
+            case DATE -> Set.of(
+                    FilterOperator.EQUALS,
+                    FilterOperator.NOT_EQUALS,
+                    FilterOperator.GREATER_THAN,
+                    FilterOperator.LESS_THAN,
+                    FilterOperator.IN,
+                    FilterOperator.NOT_IN,
+                    FilterOperator.BETWEEN,
+                    FilterOperator.BLANK,
+                    FilterOperator.NOT_BLANK
             );
         };
     }

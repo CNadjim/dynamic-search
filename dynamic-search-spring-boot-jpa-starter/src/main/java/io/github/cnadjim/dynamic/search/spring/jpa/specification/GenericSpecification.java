@@ -114,14 +114,16 @@ public class GenericSpecification<E> implements Specification<E> {
     }
 
     private Predicate buildNotEquals(Root<E> root, CriteriaBuilder cb,
-                                     FilterCriteria filter, Predicate predicate) {
+                                     FilterCriteria filter,
+                                     Predicate predicate) {
         Object value = FieldTypeParser.parse(filter.fieldType(), filter.value().toString());
         Expression<?> key = root.get(filter.key());
         return cb.and(cb.notEqual(key, value), predicate);
     }
 
     private Predicate buildLessThan(Root<E> root, CriteriaBuilder cb,
-                                    FilterCriteria filter, Predicate predicate) {
+                                    FilterCriteria filter,
+                                    Predicate predicate) {
         Object value = FieldTypeParser.parse(filter.fieldType(), filter.value().toString());
 
         return switch (filter.fieldType()) {

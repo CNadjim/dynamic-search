@@ -28,7 +28,8 @@
 		<module>dynamic-search-spring-boot-starter</module>
 		<module>dynamic-search-spring-boot-jpa-starter</module>
 		<module>dynamic-search-spring-boot-mongo-starter</module>
-		<module>dynamic-search-spring-boot-example</module>
+		<module>dynamic-search-spring-boot-elasticsearch-starter</module>
+		<module>dynamic-search-spring-boot-jpa-example</module>
 	</modules>
 
 	<dependencyManagement>
@@ -55,6 +56,12 @@
 			<dependency>
 				<groupId>io.github.cnadjim</groupId>
 				<artifactId>dynamic-search-spring-boot-mongo-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<!-- Module Elasticsearch starter -->
+			<dependency>
+				<groupId>io.github.cnadjim</groupId>
+				<artifactId>dynamic-search-spring-boot-elasticsearch-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>

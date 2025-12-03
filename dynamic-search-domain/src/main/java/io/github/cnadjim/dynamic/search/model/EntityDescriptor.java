@@ -6,8 +6,4 @@ public record EntityDescriptor(
         Class<?> entityClass,
         List<FilterDescriptor> filters
 ) {
-
-    public String getId() {
-        return entityClass.getSimpleName();
-    }
 }

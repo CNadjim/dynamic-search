@@ -45,32 +45,6 @@ public record SearchRequest(
 ) implements Serializable {
 
     /**
-     * Constructeur compact avec valeurs par défaut
-     */
-    public SearchRequest {
-        // Initialiser les listes vides si null
-        if (filters == null) {
-            filters = new ArrayList<>();
-        }
-
-        if (sorts == null) {
-            sorts = new ArrayList<>();
-        }
-
-        // Initialiser la pagination par défaut si null
-        if (page == null) {
-            page = new PageRequest();
-        }
-    }
-
-    /**
-     * Constructeur par défaut avec valeurs prédéfinies
-     */
-    public SearchRequest() {
-        this(new ArrayList<>(), new ArrayList<>(), new PageRequest());
-    }
-
-    /**
      * Getter pour les filtres (garantit une liste non-null)
      */
     public List<FilterRequest> getFilters() {
@@ -87,7 +61,7 @@ public record SearchRequest(
     /**
      * Getter pour la pagination (garantit une valeur non-null)
      */
-    public PageRequest getPageRequest() {
+    public PageRequest getPage() {
         return page != null ? page : new PageRequest();
     }
 

@@ -37,14 +37,6 @@ public record FilterRequest(
         FilterOperatorResponse operator,
 
         @Schema(
-                description = "Type du champ (optionnel, déduit automatiquement depuis les métadonnées de l'entité si omis)",
-                example = "string",
-                defaultValue = "string",
-                requiredMode = Schema.RequiredMode.NOT_REQUIRED
-        )
-        FieldTypeResponse fieldType,
-
-        @Schema(
                 description = "Valeur du filtre (utilisée pour la plupart des opérateurs)",
                 example = "Windows"
         )
@@ -63,23 +55,4 @@ public record FilterRequest(
         List<Object> values
 
 ) implements Serializable {
-
-    /**
-     * Constructeur compact avec valeurs par défaut
-     */
-    public FilterRequest {
-        // Valeur par défaut pour l'opérateur si null
-        if (operator == null) {
-            operator = FilterOperatorResponse.EQUALS;
-        }
-        // fieldType peut être null - sera déduit depuis EntityMetadataStorage
-    }
-
-    /**
-     * Constructeur de convenance pour les filtres simples
-     */
-    public FilterRequest(String key, FilterOperatorResponse operator, Object value) {
-        this(key, operator, FieldTypeResponse.STRING, value, null, null);
-    }
-
 }

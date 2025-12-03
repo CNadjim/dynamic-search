@@ -1,9 +1,8 @@
-package io.github.cnadjim.dynamic.search.spring.jpa.processor;
+package io.github.cnadjim.dynamic.search.spring.elasticsearch.processor;
 
 import io.github.cnadjim.dynamic.search.annotation.EnableSearchable;
 import io.github.cnadjim.dynamic.search.service.SearchService;
-import io.github.cnadjim.dynamic.search.spring.jpa.factory.SearchServiceFactoryProvider;
-import jakarta.persistence.Entity;
+import io.github.cnadjim.dynamic.search.spring.elasticsearch.factory.SearchServiceFactoryProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -13,12 +12,13 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.lang.NonNull;
 
 import java.util.Set;
 
 /**
- * Processor responsable de scanner les entités JPA annotées @EnableSearchable
+ * Processor responsable de scanner les documents Elasticsearch annotés @EnableSearchable
  * et d'enregistrer les beans SearchUseCase<T> et GetAvailableFiltersUseCase<T>.
  *
  * Utilise BeanDefinitionRegistryPostProcessor pour scanner le classpath et enregistrer
@@ -26,19 +26,19 @@ import java.util.Set;
  * Les beans sont enregistrés avec un instanceSupplier lazy qui appelle le factory.
  */
 @Slf4j
-public class SearchableEntityRegistrationProcessor implements BeanDefinitionRegistryPostProcessor {
+public class SearchableDocumentRegistrationProcessor implements BeanDefinitionRegistryPostProcessor {
 
     private final SearchServiceFactoryProvider factoryProvider;
 
-    public SearchableEntityRegistrationProcessor(SearchServiceFactoryProvider factoryProvider) {
+    public SearchableDocumentRegistrationProcessor(SearchServiceFactoryProvider factoryProvider) {
         this.factoryProvider = factoryProvider;
     }
 
     @Override
-    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        log.info("🔍 Scanning for @EnableSearchable JPA entities...");
+    public void postProcessBeanDefinitionRegistry(@NonNull BeanDefinitionRegistry registry) throws BeansException {
+        log.info("🔍 Scanning for @EnableSearchable Elasticsearch documents...");
 
-        // Scanner le classpath complet pour trouver les classes annotées @Entity et @EnableSearchable
+        // Scanner le classpath complet pour trouver les classes annotées @Document et @EnableSearchable
         ClassPathScanningCandidateComponentProvider scanner = createScanner();
 
         // Scanner en partant de la racine (tous les packages)
@@ -46,23 +46,23 @@ public class SearchableEntityRegistrationProcessor implements BeanDefinitionRegi
 
         for (BeanDefinition candidate : candidates) {
             try {
-                Class<?> entityClass = Class.forName(candidate.getBeanClassName());
+                Class<?> documentClass = Class.forName(candidate.getBeanClassName());
 
                 // Vérifier que la classe a bien les deux annotations
-                if (entityClass.isAnnotationPresent(Entity.class) &&
-                    entityClass.isAnnotationPresent(EnableSearchable.class)) {
+                if (documentClass.isAnnotationPresent(Document.class) &&
+                    documentClass.isAnnotationPresent(EnableSearchable.class)) {
 
-                    EnableSearchable annotation = entityClass.getAnnotation(EnableSearchable.class);
+                    EnableSearchable annotation = documentClass.getAnnotation(EnableSearchable.class);
 
                     String baseName = annotation.beanName().isEmpty()
-                            ? entityClass.getSimpleName()
+                            ? documentClass.getSimpleName()
                             : annotation.beanName();
 
                     String searchBeanName = "searchService" + baseName;
 
                     if (!registry.containsBeanDefinition(searchBeanName)) {
-                        log.info("✅ Registering search service bean for @EnableSearchable entity: {}", entityClass.getSimpleName());
-                        registerBeanForEntity(registry, entityClass, searchBeanName);
+                        log.info("✅ Registering search service bean for @EnableSearchable document: {}", documentClass.getSimpleName());
+                        registerBeanForDocument(registry, documentClass, searchBeanName);
                     }
                 }
             } catch (ClassNotFoundException e) {
@@ -77,30 +77,30 @@ public class SearchableEntityRegistrationProcessor implements BeanDefinitionRegi
     }
 
     /**
-     * Crée un scanner configuré pour trouver les classes annotées @Entity et @EnableSearchable
+     * Crée un scanner configuré pour trouver les classes annotées @Document et @EnableSearchable
      */
     private ClassPathScanningCandidateComponentProvider createScanner() {
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
 
-        // Scanner les classes avec @Entity ET @EnableSearchable
-        scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
+        // Scanner les classes avec @Document ET @EnableSearchable
+        scanner.addIncludeFilter(new AnnotationTypeFilter(Document.class));
         scanner.addIncludeFilter(new AnnotationTypeFilter(EnableSearchable.class));
 
         return scanner;
     }
 
     /**
-     * Enregistre le bean SearchService<T> pour une entité
+     * Enregistre le bean SearchService<T> pour un document
      */
-    private void registerBeanForEntity(
+    private void registerBeanForDocument(
             BeanDefinitionRegistry registry,
-            Class<?> entityClass,
+            Class<?> documentClass,
             String beanName) {
 
         GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
         beanDefinition.setBeanClass(SearchService.class);
-        beanDefinition.setInstanceSupplier(() -> factoryProvider.createSearchService(entityClass));
+        beanDefinition.setInstanceSupplier(() -> factoryProvider.createSearchService(documentClass));
         beanDefinition.setLazyInit(true);
         registry.registerBeanDefinition(beanName, beanDefinition);
     }

@@ -44,9 +44,7 @@ public final class SearchRequestMapper {
                 .map(SearchRequestMapper::toSortCriteria)
                 .collect(Collectors.toList());
 
-        // Extraction de page et size depuis le PageRequest
-        PageRequest pageRequest = request.getPageRequest();
-        PageCriteria pageCriteria = new PageCriteria(pageRequest.page(), pageRequest.size());
+        PageCriteria pageCriteria = toDomain(request.getPage());
 
         return SearchCriteria.builder()
                 .filters(filters)
@@ -55,41 +53,13 @@ public final class SearchRequestMapper {
                 .build();
     }
 
-    /**
-     * Version legacy pour rétro-compatibilité (sans déduction automatique)
-     * @deprecated Utiliser {@link #toDomain(SearchRequest, Class, EntityMetadataStorage)}
-     */
-    @Deprecated
-    public static SearchCriteria toDomain(SearchRequest request) {
-        if (request == null) {
-            return SearchCriteria.builder().build();
-        }
 
-        List<FilterCriteria> filters = request.getFilters()
-                .stream()
-                .map(SearchRequestMapper::toFilterCriteriaLegacy)
-                .collect(Collectors.toList());
-
-        List<SortCriteria> sorts = request.getSorts()
-                .stream()
-                .map(SearchRequestMapper::toSortCriteria)
-                .collect(Collectors.toList());
-
-        PageRequest pageRequest = request.getPageRequest();
-        PageCriteria pageCriteria = new PageCriteria(pageRequest.page(), pageRequest.size());
-
-        return SearchCriteria.builder()
-                .filters(filters)
-                .sorts(sorts)
-                .pageCriteria(pageCriteria)
-                .build();
+    private static PageCriteria toDomain(PageRequest request) {
+        return new PageCriteria(request.page(), request.size());
     }
 
     private static FilterCriteria toFilterCriteria(FilterRequest request, Class<?> entityClass, EntityMetadataStorage metadataStorage) {
-        // Résoudre le fieldType (fourni ou déduit depuis les métadonnées)
-        FieldType resolvedFieldType = request.fieldType() != null
-                ? request.fieldType().toDomain()
-                : metadataStorage.resolveFieldType(entityClass, request.key());
+        FieldType resolvedFieldType = metadataStorage.resolveFieldType(entityClass, request.key());
 
         return FilterCriteria.builder()
                 .key(request.key())
@@ -101,21 +71,10 @@ public final class SearchRequestMapper {
                 .build();
     }
 
-    private static FilterCriteria toFilterCriteriaLegacy(FilterRequest request) {
-        return FilterCriteria.builder()
-                .key(request.key())
-                .operator(request.operator().toDomain())
-                .fieldType(request.fieldType() != null ? request.fieldType().toDomain() : FieldType.STRING)
-                .value(request.value())
-                .valueTo(request.valueTo())
-                .values(request.values())
-                .build();
-    }
-
     private static SortCriteria toSortCriteria(SortRequest request) {
         return SortCriteria.builder()
                 .key(request.key())
-                .direction(request.direction().toDomain())  // Conversion DTO vers domaine
+                .direction(request.direction().toDomain())
                 .build();
     }
 

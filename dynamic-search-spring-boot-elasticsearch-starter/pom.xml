@@ -10,30 +10,23 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>dynamic-search-spring-boot-example</artifactId>
+    <artifactId>dynamic-search-spring-boot-elasticsearch-starter</artifactId>
     <packaging>jar</packaging>
-    <name>dynamic-search-spring-boot-example</name>
-    <description>Exemple d'utilisation de la lib dynamic-search</description>
+    <name>dynamic-search-spring-boot-elasticsearch-starter</name>
+    <description>Starter Elasticsearch - Adaptateurs techniques pour Elasticsearch</description>
 
     <dependencies>
-        <!-- Dépendance vers le JPA starter (inclut automatiquement le starter commun) -->
+        <!-- Dépendance vers le starter commun -->
         <dependency>
             <groupId>io.github.cnadjim</groupId>
-            <artifactId>dynamic-search-spring-boot-jpa-starter</artifactId>
+            <artifactId>dynamic-search-spring-boot-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Spring Boot Data Elasticsearch -->
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.8.6</version>
-        </dependency>
-
-        <!-- Base de données H2 pour l'exemple -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
         </dependency>
 
         <!-- Lombok -->
@@ -67,18 +60,6 @@
                             <version>1.18.30</version>
                         </path>
                     </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

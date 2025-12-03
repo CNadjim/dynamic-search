@@ -36,19 +36,6 @@ public record PageRequest(
 ) implements Serializable {
 
     /**
-     * Constructeur compact avec valeurs par défaut
-     */
-    public PageRequest {
-        // Valeurs par défaut si null
-        if (page == null) {
-            page = 0;
-        }
-        if (size == null) {
-            size = 20;
-        }
-    }
-
-    /**
      * Constructeur par défaut avec valeurs prédéfinies
      */
     public PageRequest() {
