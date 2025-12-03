@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.0</version>
+		<relativePath/>
+	</parent>
+
+	<groupId>io.github.cnadjim</groupId>
+	<artifactId>dynamic-search</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>dynamic-search</name>
+	<description>Lib générique pour construire des recherches dynamiques avec architecture hexagonale - Support JPA et MongoDB</description>
+
+	<properties>
+		<java.version>21</java.version>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<modules>
+		<module>dynamic-search-domain</module>
+		<module>dynamic-search-spring-boot-starter</module>
+		<module>dynamic-search-spring-boot-jpa-starter</module>
+		<module>dynamic-search-spring-boot-mongo-starter</module>
+		<module>dynamic-search-spring-boot-example</module>
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Module domain -->
+			<dependency>
+				<groupId>io.github.cnadjim</groupId>
+				<artifactId>dynamic-search-domain</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<!-- Module starter commun -->
+			<dependency>
+				<groupId>io.github.cnadjim</groupId>
+				<artifactId>dynamic-search-spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<!-- Module JPA starter -->
+			<dependency>
+				<groupId>io.github.cnadjim</groupId>
+				<artifactId>dynamic-search-spring-boot-jpa-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<!-- Module MongoDB starter -->
+			<dependency>
+				<groupId>io.github.cnadjim</groupId>
+				<artifactId>dynamic-search-spring-boot-mongo-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+</project>
