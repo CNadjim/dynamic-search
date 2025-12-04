@@ -66,7 +66,7 @@ L'exemple JPA inclut une **interface web moderne** avec :
 - ✅ **Formatage automatique des dates** - AG Grid → API (suppression timestamp)
 - ✅ **Single JAR deployment** - Frontend compilé dans le JAR Spring Boot
 
-👉 Voir [FRONTEND.md](dynamic-search-spring-boot-jpa-example/FRONTEND.md) pour la documentation complète du frontend.
+👉 Voir [README.md](dynamic-search-spring-boot-jpa-example/README.md) pour la documentation complète du frontend.
 
 ### Démarrage Rapide du Frontend
 
@@ -233,8 +233,8 @@ public class OperatingSystemController {
       "direction": "desc"
     }
   ],
-  "pageRequest": {
-    "page": 0,
+  "page": {
+    "number": 0,
     "size": 10
   }
 }
@@ -465,8 +465,8 @@ La bibliothèque suit les principes de l'**architecture hexagonale** (Ports & Ad
 
 ```json
 {
-  "pageRequest": {
-    "page": 2,
+  "page": {
+    "number": 2,
     "size": 20
   }
 }
