@@ -1,41 +1,49 @@
 package io.github.cnadjim.dynamic.search.spring.elasticsearch.processor;
 
 import io.github.cnadjim.dynamic.search.annotation.EnableSearchable;
-import io.github.cnadjim.dynamic.search.service.SearchService;
-import io.github.cnadjim.dynamic.search.spring.elasticsearch.factory.SearchServiceFactoryProvider;
+import io.github.cnadjim.dynamic.search.model.EntityRepository;
+import io.github.cnadjim.dynamic.search.port.in.RegisterEntityUseCase;
+import io.github.cnadjim.dynamic.search.spring.elasticsearch.adapter.ElasticsearchEntityRepositoryAdapter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.lang.NonNull;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Processor responsable de scanner les documents Elasticsearch annotés @EnableSearchable
- * et d'enregistrer les beans SearchUseCase<T> et GetAvailableFiltersUseCase<T>.
- *
- * Utilise BeanDefinitionRegistryPostProcessor pour scanner le classpath et enregistrer
- * les beans avant la création des autres beans.
- * Les beans sont enregistrés avec un instanceSupplier lazy qui appelle le factory.
+ * et de les enregistrer auprès du SearchService unique.
+ * <p>
+ * Utilise ApplicationListener<ContextRefreshedEvent> pour enregistrer les documents
+ * après que tous les beans soient créés et disponibles.
+ * <p>
+ * L'enregistrement se fait une seule fois lors du premier ContextRefreshedEvent.
  */
 @Slf4j
-public class SearchableDocumentRegistrationProcessor implements BeanDefinitionRegistryPostProcessor {
+public class SearchableDocumentRegistrationProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
-    private final SearchServiceFactoryProvider factoryProvider;
+    private final RegisterEntityUseCase registerEntityUseCase;
+    private final ElasticsearchOperations elasticsearchOperations;
+    private final AtomicBoolean registered = new AtomicBoolean(false);
 
-    public SearchableDocumentRegistrationProcessor(SearchServiceFactoryProvider factoryProvider) {
-        this.factoryProvider = factoryProvider;
+    public SearchableDocumentRegistrationProcessor(RegisterEntityUseCase registerEntityUseCase, ElasticsearchOperations elasticsearchOperations) {
+        this.registerEntityUseCase = registerEntityUseCase;
+        this.elasticsearchOperations = elasticsearchOperations;
     }
 
     @Override
-    public void postProcessBeanDefinitionRegistry(@NonNull BeanDefinitionRegistry registry) throws BeansException {
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        // Ne s'exécuter qu'une seule fois
+        if (!registered.compareAndSet(false, true)) {
+            return;
+        }
+
         log.info("🔍 Scanning for @EnableSearchable Elasticsearch documents...");
 
         // Scanner le classpath complet pour trouver les classes annotées @Document et @EnableSearchable
@@ -43,6 +51,8 @@ public class SearchableDocumentRegistrationProcessor implements BeanDefinitionRe
 
         // Scanner en partant de la racine (tous les packages)
         Set<BeanDefinition> candidates = scanner.findCandidateComponents("");
+
+        int registeredCount = 0;
 
         for (BeanDefinition candidate : candidates) {
             try {
@@ -52,28 +62,18 @@ public class SearchableDocumentRegistrationProcessor implements BeanDefinitionRe
                 if (documentClass.isAnnotationPresent(Document.class) &&
                     documentClass.isAnnotationPresent(EnableSearchable.class)) {
 
-                    EnableSearchable annotation = documentClass.getAnnotation(EnableSearchable.class);
-
-                    String baseName = annotation.beanName().isEmpty()
-                            ? documentClass.getSimpleName()
-                            : annotation.beanName();
-
-                    String searchBeanName = "searchService" + baseName;
-
-                    if (!registry.containsBeanDefinition(searchBeanName)) {
-                        log.info("✅ Registering search service bean for @EnableSearchable document: {}", documentClass.getSimpleName());
-                        registerBeanForDocument(registry, documentClass, searchBeanName);
-                    }
+                    log.info("✅ Registering @EnableSearchable Elasticsearch document: {}", documentClass.getSimpleName());
+                    registerDocument(documentClass);
+                    registeredCount++;
                 }
             } catch (ClassNotFoundException e) {
                 log.warn("Failed to load class: {}", candidate.getBeanClassName(), e);
+            } catch (Exception e) {
+                log.error("Failed to register document: {}", candidate.getBeanClassName(), e);
             }
         }
-    }
 
-    @Override
-    public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // Rien à faire ici
+        log.info("📊 Successfully registered {} @EnableSearchable Elasticsearch documents", registeredCount);
     }
 
     /**
@@ -91,17 +91,14 @@ public class SearchableDocumentRegistrationProcessor implements BeanDefinitionRe
     }
 
     /**
-     * Enregistre le bean SearchService<T> pour un document
+     * Enregistre un document Elasticsearch auprès du SearchService
+     * Crée un adaptateur Elasticsearch spécifique pour ce document
      */
-    private void registerBeanForDocument(
-            BeanDefinitionRegistry registry,
-            Class<?> documentClass,
-            String beanName) {
+    private <T> void registerDocument(Class<T> documentClass) {
+        // Créer l'adaptateur
+        EntityRepository<T> repositoryAdapter = new ElasticsearchEntityRepositoryAdapter<>(elasticsearchOperations, documentClass);
 
-        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-        beanDefinition.setBeanClass(SearchService.class);
-        beanDefinition.setInstanceSupplier(() -> factoryProvider.createSearchService(documentClass));
-        beanDefinition.setLazyInit(true);
-        registry.registerBeanDefinition(beanName, beanDefinition);
+        // Enregistrer le document auprès du SearchService
+        registerEntityUseCase.registerEntity(documentClass, repositoryAdapter);
     }
 }

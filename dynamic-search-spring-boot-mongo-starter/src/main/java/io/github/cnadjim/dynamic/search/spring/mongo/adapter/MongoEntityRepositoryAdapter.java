@@ -1,8 +1,8 @@
 package io.github.cnadjim.dynamic.search.spring.mongo.adapter;
 
+import io.github.cnadjim.dynamic.search.model.EntityRepository;
 import io.github.cnadjim.dynamic.search.model.SearchCriteria;
 import io.github.cnadjim.dynamic.search.model.SearchResult;
-import io.github.cnadjim.dynamic.search.port.out.EntityRepository;
 import io.github.cnadjim.dynamic.search.spring.mongo.criteria.MongoCriteriaBuilder;
 import io.github.cnadjim.dynamic.search.spring.starter.mapper.PageToSearchResultMapper;
 import org.springframework.data.domain.Page;
@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.support.PageableExecutionUtils;
 
@@ -33,7 +32,7 @@ public class MongoEntityRepositoryAdapter<T> implements EntityRepository<T> {
     private final MongoTemplate mongoTemplate;
     private final Class<T> entityClass;
 
-    public MongoEntityRepositoryAdapter(MongoTemplate mongoTemplate, Class<T> entityClass, MongoPersistentEntity<?> persistentEntity) {
+    public MongoEntityRepositoryAdapter(MongoTemplate mongoTemplate, Class<T> entityClass) {
         this.mongoTemplate = mongoTemplate;
         this.entityClass = entityClass;
     }

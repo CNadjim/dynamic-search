@@ -1,7 +1,7 @@
 package io.github.cnadjim.dynamic.search.spring.starter.mapper;
 
 import io.github.cnadjim.dynamic.search.model.*;
-import io.github.cnadjim.dynamic.search.port.out.EntityMetadataStorage;
+import io.github.cnadjim.dynamic.search.port.in.GetFieldTypeUseCase;
 import io.github.cnadjim.dynamic.search.spring.starter.request.FilterRequest;
 import io.github.cnadjim.dynamic.search.spring.starter.request.PageRequest;
 import io.github.cnadjim.dynamic.search.spring.starter.request.SearchRequest;
@@ -22,21 +22,21 @@ public final class SearchRequestMapper {
 
     /**
      * Convertit une SearchRequest REST en SearchCriteria du domaine
-     * Déduit automatiquement les fieldType depuis les métadonnées de l'entité
+     * Déduit automatiquement les fieldType via le use case GetFieldTypeUseCase
      *
      * @param request SearchRequest provenant du client
      * @param entityClass Classe de l'entité recherchée
-     * @param metadataStorage Storage des métadonnées pour déduire les types de champs
+     * @param getFieldTypeUseCase Use case pour déduire les types de champs
      * @return SearchCriteria du domaine
      */
-    public static SearchCriteria toDomain(SearchRequest request, Class<?> entityClass, EntityMetadataStorage metadataStorage) {
+    public static SearchCriteria toDomain(SearchRequest request, Class<?> entityClass, GetFieldTypeUseCase getFieldTypeUseCase) {
         if (request == null) {
             return SearchCriteria.builder().build();
         }
 
         List<FilterCriteria> filters = request.getFilters()
                 .stream()
-                .map(filter -> toFilterCriteria(filter, entityClass, metadataStorage))
+                .map(filter -> toFilterCriteria(filter, entityClass, getFieldTypeUseCase))
                 .collect(Collectors.toList());
 
         List<SortCriteria> sorts = request.getSorts()
@@ -58,8 +58,15 @@ public final class SearchRequestMapper {
         return new PageCriteria(request.page(), request.size());
     }
 
-    private static FilterCriteria toFilterCriteria(FilterRequest request, Class<?> entityClass, EntityMetadataStorage metadataStorage) {
-        FieldType resolvedFieldType = metadataStorage.resolveFieldType(entityClass, request.key());
+    private static FilterCriteria toFilterCriteria(FilterRequest request, Class<?> entityClass, GetFieldTypeUseCase getFieldTypeUseCase) {
+        // Résolution du type de champ via le use case
+        FieldType resolvedFieldType;
+        try {
+            resolvedFieldType = getFieldTypeUseCase.getFieldType(request.key(), entityClass);
+        } catch (Exception e) {
+            // Fallback sur STRING si le champ n'est pas trouvé
+            resolvedFieldType = FieldType.STRING;
+        }
 
         return FilterCriteria.builder()
                 .key(request.key())

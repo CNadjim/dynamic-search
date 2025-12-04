@@ -1,12 +1,11 @@
 package io.github.cnadjim.dynamic.search.spring.jpa.specification;
 
 import io.github.cnadjim.dynamic.search.model.*;
-import io.github.cnadjim.dynamic.search.util.FieldTypeParser;
+import io.github.cnadjim.dynamic.search.spring.starter.util.FieldTypeParser;
+import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
-
-import jakarta.persistence.criteria.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 

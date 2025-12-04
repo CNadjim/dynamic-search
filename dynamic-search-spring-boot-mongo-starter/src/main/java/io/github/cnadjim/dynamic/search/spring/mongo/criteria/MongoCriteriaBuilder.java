@@ -3,7 +3,7 @@ package io.github.cnadjim.dynamic.search.spring.mongo.criteria;
 import io.github.cnadjim.dynamic.search.model.FieldType;
 import io.github.cnadjim.dynamic.search.model.FilterCriteria;
 import io.github.cnadjim.dynamic.search.model.SearchCriteria;
-import io.github.cnadjim.dynamic.search.util.FieldTypeParser;
+import io.github.cnadjim.dynamic.search.spring.starter.util.FieldTypeParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;

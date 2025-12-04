@@ -1,4 +1,4 @@
-package io.github.cnadjim.dynamic.search.util;
+package io.github.cnadjim.dynamic.search.spring.starter.util;
 
 import io.github.cnadjim.dynamic.search.model.FieldType;
 

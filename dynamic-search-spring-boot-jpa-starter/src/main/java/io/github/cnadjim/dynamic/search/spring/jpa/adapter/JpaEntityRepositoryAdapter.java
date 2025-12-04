@@ -2,10 +2,9 @@ package io.github.cnadjim.dynamic.search.spring.jpa.adapter;
 
 import io.github.cnadjim.dynamic.search.model.SearchCriteria;
 import io.github.cnadjim.dynamic.search.model.SearchResult;
-import io.github.cnadjim.dynamic.search.port.out.EntityRepository;
+import io.github.cnadjim.dynamic.search.model.EntityRepository;
 import io.github.cnadjim.dynamic.search.spring.starter.mapper.PageToSearchResultMapper;
 import io.github.cnadjim.dynamic.search.spring.jpa.specification.GenericSpecification;
-import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +29,7 @@ public class JpaEntityRepositoryAdapter<T> implements EntityRepository<T> {
 
     private final JpaSpecificationExecutor<T> specificationExecutor;
 
-    public JpaEntityRepositoryAdapter(JpaSpecificationExecutor<T> specificationExecutor, EntityManager entityManager, Class<T> entityClass) {
+    public JpaEntityRepositoryAdapter(JpaSpecificationExecutor<T> specificationExecutor) {
         this.specificationExecutor = specificationExecutor;
     }
 

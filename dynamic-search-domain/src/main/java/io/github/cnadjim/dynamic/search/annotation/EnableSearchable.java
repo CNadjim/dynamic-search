@@ -5,7 +5,6 @@ import java.lang.annotation.*;
 /**
  * Annotation pour marquer une classe Domain/Entity comme "searchable"
  * Active automatiquement les fonctionnalités de recherche dynamique pour cette entité
- *
  * Usage:
  * <pre>
  * {@code @EnableSearchable}
