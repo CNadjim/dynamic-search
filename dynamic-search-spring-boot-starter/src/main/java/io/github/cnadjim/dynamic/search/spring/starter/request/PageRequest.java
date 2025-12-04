@@ -18,19 +18,19 @@ import java.io.Serializable;
 public record PageRequest(
 
         @Schema(
-                description = "Numéro de la page (commence à 0)",
+                description = "Numéro de la number (commence à 0)",
                 example = "0",
                 defaultValue = "0"
         )
-        @Min(value = 0, message = "Le numéro de page doit être supérieur ou égal à 0")
-        Integer page,
+        @Min(value = 0, message = "Le numéro de number doit être supérieur ou égal à 0")
+        Integer number,
 
         @Schema(
-                description = "Nombre d'éléments par page",
+                description = "Nombre d'éléments par number",
                 example = "20",
                 defaultValue = "20"
         )
-        @Min(value = 1, message = "La taille de page doit être supérieure ou égale à 1")
+        @Min(value = 1, message = "La taille de number doit être supérieure ou égale à 1")
         Integer size
 
 ) implements Serializable {

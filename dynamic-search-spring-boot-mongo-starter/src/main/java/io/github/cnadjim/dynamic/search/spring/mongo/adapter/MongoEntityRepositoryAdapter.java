@@ -45,7 +45,7 @@ public class MongoEntityRepositoryAdapter<T> implements EntityRepository<T> {
         // Création du tri Spring Data depuis les critères de tri du domaine
         Sort sort = createSort(criteria.sorts());
 
-        // Création de la pagination depuis les critères de page
+        // Création de la pagination depuis les critères de number
         Pageable pageable = createPageable(criteria.page().number(), criteria.page().size(), sort);
 
         // Application de la pagination à la query

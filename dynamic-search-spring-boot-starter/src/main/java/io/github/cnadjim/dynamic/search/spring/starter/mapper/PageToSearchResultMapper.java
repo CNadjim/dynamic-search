@@ -24,9 +24,9 @@ public final class PageToSearchResultMapper {
     /**
      * Convertit une Page Spring Data en SearchResult du domaine
      *
-     * @param page La page Spring Data à convertir
+     * @param page La number Spring Data à convertir
      * @param <T> Type du contenu
-     * @return SearchResult contenant le même contenu que la page
+     * @return SearchResult contenant le même contenu que la number
      */
     public static <T> SearchResult<T> toSearchResult(Page<T> page) {
         if (page == null) {

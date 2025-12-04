@@ -55,7 +55,7 @@ public final class SearchRequestMapper {
 
 
     private static PageCriteria toDomain(PageRequest request) {
-        return new PageCriteria(request.page(), request.size());
+        return new PageCriteria(request.number(), request.size());
     }
 
     private static FilterCriteria toFilterCriteria(FilterRequest request, Class<?> entityClass, GetFieldTypeUseCase getFieldTypeUseCase) {

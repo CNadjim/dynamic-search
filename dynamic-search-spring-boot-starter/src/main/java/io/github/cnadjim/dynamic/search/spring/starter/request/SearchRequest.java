@@ -36,7 +36,7 @@ public record SearchRequest(
         List<SortRequest> sorts,
 
         @Schema(
-                description = "Critères de pagination (page et size)",
+                description = "Critères de pagination (number et size)",
                 implementation = PageRequest.class
         )
         @Valid
