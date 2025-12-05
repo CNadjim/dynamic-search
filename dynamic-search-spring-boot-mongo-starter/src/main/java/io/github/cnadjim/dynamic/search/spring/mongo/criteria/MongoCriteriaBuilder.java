@@ -1,7 +1,9 @@
 package io.github.cnadjim.dynamic.search.spring.mongo.criteria;
 
+import io.github.cnadjim.dynamic.search.metadata.FilterMetadataExtractor;
 import io.github.cnadjim.dynamic.search.model.FieldType;
 import io.github.cnadjim.dynamic.search.model.FilterCriteria;
+import io.github.cnadjim.dynamic.search.model.FilterDescriptor;
 import io.github.cnadjim.dynamic.search.model.SearchCriteria;
 import io.github.cnadjim.dynamic.search.spring.starter.util.FieldTypeParser;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,12 +26,14 @@ public final class MongoCriteriaBuilder {
     }
 
     /**
-     * Construit une Query MongoDB à partir des critères du domaine
+     * Construit une Query MongoDB à partir des critères du domaine, incluant la recherche full-text
+     * @param searchCriteria Critères de recherche
+     * @param entityClass Classe de l'entité pour extraire les champs searchable
      */
-    public static Query buildQuery(SearchCriteria searchCriteria) {
+    public static Query buildQuery(SearchCriteria searchCriteria, Class<?> entityClass) {
         Query query = new Query();
 
-        // Application des filtres
+        // Application des filtres standards
         for (FilterCriteria filter : searchCriteria.filters()) {
             log.info("Filter: {} {} {}", filter.key(), filter.operator(), filter.value());
             Criteria criteria = buildCriteria(filter);
@@ -37,7 +42,50 @@ public final class MongoCriteriaBuilder {
             }
         }
 
+        // Application de la recherche full-text si présente
+        if (searchCriteria.hasFullTextSearch()) {
+            log.info("Full-text search: {}", searchCriteria.fullText().query());
+            Criteria fullTextCriteria = buildFullTextCriteria(searchCriteria.fullText().query(), entityClass);
+            if (fullTextCriteria != null) {
+                query.addCriteria(fullTextCriteria);
+            }
+        }
+
         return query;
+    }
+
+    /**
+     * Construit un critère full-text qui cherche dans tous les champs STRING searchable
+     * Utilise un OR entre tous les champs avec une recherche REGEX case-insensitive
+     */
+    private static Criteria buildFullTextCriteria(String searchQuery, Class<?> entityClass) {
+        // Extraire les métadonnées des champs searchable
+        List<FilterDescriptor> searchableFields = FilterMetadataExtractor.extractFilters(entityClass);
+
+        // Filtrer uniquement les champs de type STRING (les seuls où on peut faire du full-text)
+        List<String> stringFields = searchableFields.stream()
+                .filter(field -> field.fieldType() == FieldType.STRING)
+                .map(FilterDescriptor::key)
+                .toList();
+
+        if (stringFields.isEmpty()) {
+            log.warn("No searchable STRING fields found for full-text search on entity: {}", entityClass.getSimpleName());
+            return null;
+        }
+
+        // Construire un regex case-insensitive pour la recherche
+        String regex = ".*" + searchQuery + ".*";
+
+        // Créer un critère OR sur tous les champs STRING
+        List<Criteria> fieldCriteria = new ArrayList<>();
+        for (String fieldName : stringFields) {
+            fieldCriteria.add(Criteria.where(fieldName).regex(regex, "i"));
+        }
+
+        log.debug("Full-text search on {} fields: {}", fieldCriteria.size(), stringFields);
+
+        // Combiner tous les critères avec OR
+        return new Criteria().orOperator(fieldCriteria.toArray(new Criteria[0]));
     }
 
     /**

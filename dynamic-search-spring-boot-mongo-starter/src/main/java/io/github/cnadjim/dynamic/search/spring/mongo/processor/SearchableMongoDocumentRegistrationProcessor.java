@@ -1,24 +1,23 @@
-package io.github.cnadjim.dynamic.search.spring.elasticsearch.processor;
+package io.github.cnadjim.dynamic.search.spring.mongo.processor;
 
 import io.github.cnadjim.dynamic.search.annotation.EnableSearchable;
-import io.github.cnadjim.dynamic.search.port.in.GetFieldTypeUseCase;
 import io.github.cnadjim.dynamic.search.port.out.EntityRepository;
 import io.github.cnadjim.dynamic.search.port.in.RegisterEntityUseCase;
-import io.github.cnadjim.dynamic.search.spring.elasticsearch.adapter.ElasticsearchEntityRepositoryAdapter;
+import io.github.cnadjim.dynamic.search.spring.mongo.adapter.MongoEntityRepositoryAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Processor responsable de scanner les documents Elasticsearch annotés @EnableSearchable
+ * Processor responsable de scanner les documents MongoDB annotés @EnableSearchable
  * et de les enregistrer auprès du SearchService unique.
  * <p>
  * Utilise ApplicationListener<ContextRefreshedEvent> pour enregistrer les documents
@@ -27,17 +26,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * L'enregistrement se fait une seule fois lors du premier ContextRefreshedEvent.
  */
 @Slf4j
-public class SearchableDocumentRegistrationProcessor implements ApplicationListener<ContextRefreshedEvent> {
+public class SearchableMongoDocumentRegistrationProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
-    private final GetFieldTypeUseCase getFieldTypeUseCase;
     private final RegisterEntityUseCase registerEntityUseCase;
-    private final ElasticsearchOperations elasticsearchOperations;
+    private final MongoTemplate mongoTemplate;
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
-    public SearchableDocumentRegistrationProcessor(GetFieldTypeUseCase getFieldTypeUseCase, RegisterEntityUseCase registerEntityUseCase, ElasticsearchOperations elasticsearchOperations) {
-        this.getFieldTypeUseCase = getFieldTypeUseCase;
+    public SearchableMongoDocumentRegistrationProcessor(RegisterEntityUseCase registerEntityUseCase, MongoTemplate mongoTemplate) {
         this.registerEntityUseCase = registerEntityUseCase;
-        this.elasticsearchOperations = elasticsearchOperations;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Override
@@ -47,16 +44,19 @@ public class SearchableDocumentRegistrationProcessor implements ApplicationListe
             return;
         }
 
-        log.info("🔍 Scanning for @EnableSearchable Elasticsearch documents...");
+        log.info("🔍 Scanning for @EnableSearchable MongoDB documents...");
 
         // Scanner le classpath complet pour trouver les classes annotées @Document et @EnableSearchable
         ClassPathScanningCandidateComponentProvider scanner = createScanner();
 
-        // Scanner en partant de la racine (tous les packages)
-        Set<BeanDefinition> candidates = scanner.findCandidateComponents("");
+        // Obtenir le package de base depuis le contexte (racine de l'application)
+        String basePackage = getBasePackage(event);
+        log.debug("Scanning base package: {}", basePackage);
+
+        // Scanner en partant du package de base
+        Set<BeanDefinition> candidates = scanner.findCandidateComponents(basePackage);
 
         int registeredCount = 0;
-
         for (BeanDefinition candidate : candidates) {
             try {
                 Class<?> documentClass = Class.forName(candidate.getBeanClassName());
@@ -65,7 +65,7 @@ public class SearchableDocumentRegistrationProcessor implements ApplicationListe
                 if (documentClass.isAnnotationPresent(Document.class) &&
                         documentClass.isAnnotationPresent(EnableSearchable.class)) {
 
-                    log.info("✅ Registering @EnableSearchable Elasticsearch document: {}", documentClass.getSimpleName());
+                    log.info("✅ Registering @EnableSearchable MongoDB document: {}", documentClass.getSimpleName());
                     registerDocument(documentClass);
                     registeredCount++;
                 }
@@ -76,7 +76,7 @@ public class SearchableDocumentRegistrationProcessor implements ApplicationListe
             }
         }
 
-        log.info("📊 Successfully registered {} @EnableSearchable Elasticsearch documents", registeredCount);
+        log.info("📊 Successfully registered {} @EnableSearchable MongoDB documents", registeredCount);
     }
 
     /**
@@ -94,14 +94,43 @@ public class SearchableDocumentRegistrationProcessor implements ApplicationListe
     }
 
     /**
-     * Enregistre un document Elasticsearch auprès du SearchService
-     * Crée un adaptateur Elasticsearch spécifique pour ce document
+     * Enregistre un document MongoDB auprès du SearchService
+     * Crée un adaptateur MongoDB spécifique pour ce document
      */
     private <T> void registerDocument(Class<T> documentClass) {
         // Créer l'adaptateur
-        EntityRepository<T> repositoryAdapter = new ElasticsearchEntityRepositoryAdapter<>(documentClass, getFieldTypeUseCase, elasticsearchOperations);
+        EntityRepository<T> repositoryAdapter = new MongoEntityRepositoryAdapter<>(mongoTemplate, documentClass);
 
         // Enregistrer le document auprès du SearchService
         registerEntityUseCase.registerEntity(documentClass, repositoryAdapter);
+    }
+
+    /**
+     * Obtient le package de base de l'application depuis le contexte Spring
+     */
+    private String getBasePackage(ContextRefreshedEvent event) {
+        try {
+            // Récupérer le nom de la classe principale de l'application
+            String[] beanNames = event.getApplicationContext().getBeanDefinitionNames();
+            for (String beanName : beanNames) {
+                if (beanName.toLowerCase().contains("application")) {
+                    Object bean = event.getApplicationContext().getBean(beanName);
+                    String packageName = bean.getClass().getPackage().getName();
+                    // Remonter au package racine (ex: io.github.cnadjim)
+                    int firstDot = packageName.indexOf('.');
+                    if (firstDot > 0) {
+                        int secondDot = packageName.indexOf('.', firstDot + 1);
+                        if (secondDot > 0) {
+                            return packageName.substring(0, secondDot);
+                        }
+                    }
+                    return packageName;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not determine base package from context, using 'io'", e);
+        }
+        // Par défaut, scanner depuis "io" (package standard pour les projets Java)
+        return "io";
     }
 }

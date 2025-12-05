@@ -7,15 +7,17 @@ import java.util.Objects;
 
 /**
  * Critères de recherche - Objet de valeur du domaine
- * Représente les critères de filtrage, tri et pagination pour une recherche
+ * Représente les critères de filtrage, tri, recherche full-text et pagination pour une recherche
  *
  * @param filters Liste des filtres (peut être null, retournée comme liste vide)
  * @param sorts Liste des tris (peut être null, retournée comme liste vide)
+ * @param fullText Critère de recherche full-text (peut être null)
  * @param page Critères de pagination (number et taille)
  */
 public record SearchCriteria(
         List<FilterCriteria> filters,
         List<SortCriteria> sorts,
+        FullTextCriteria fullText,
         PageCriteria page
 ) implements Serializable {
 
@@ -41,6 +43,20 @@ public record SearchCriteria(
     }
 
     /**
+     * Retourne le critère de recherche full-text, peut être null
+     */
+    public FullTextCriteria fullText() {
+        return fullText;
+    }
+
+    /**
+     * Vérifie si une recherche full-text est active
+     */
+    public boolean hasFullTextSearch() {
+        return fullText != null && fullText.query() != null && !fullText.query().isBlank();
+    }
+
+    /**
      * Builder pour SearchCriteria
      */
     public static Builder builder() {
@@ -50,6 +66,7 @@ public record SearchCriteria(
     public static class Builder {
         private List<FilterCriteria> filters;
         private List<SortCriteria> sorts;
+        private FullTextCriteria fullTextCriteria;
         private PageCriteria pageCriteria;
 
         public Builder filters(List<FilterCriteria> filters) {
@@ -62,13 +79,18 @@ public record SearchCriteria(
             return this;
         }
 
+        public Builder fullTextCriteria(FullTextCriteria fullTextCriteria) {
+            this.fullTextCriteria = fullTextCriteria;
+            return this;
+        }
+
         public Builder pageCriteria(PageCriteria pageCriteria) {
             this.pageCriteria = pageCriteria;
             return this;
         }
 
         public SearchCriteria build() {
-            return new SearchCriteria(filters, sorts, pageCriteria);
+            return new SearchCriteria(filters, sorts, fullTextCriteria, pageCriteria);
         }
     }
 

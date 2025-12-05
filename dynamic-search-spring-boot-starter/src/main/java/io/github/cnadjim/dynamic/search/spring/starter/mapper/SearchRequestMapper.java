@@ -3,6 +3,7 @@ package io.github.cnadjim.dynamic.search.spring.starter.mapper;
 import io.github.cnadjim.dynamic.search.model.*;
 import io.github.cnadjim.dynamic.search.port.in.GetFieldTypeUseCase;
 import io.github.cnadjim.dynamic.search.spring.starter.request.FilterRequest;
+import io.github.cnadjim.dynamic.search.spring.starter.request.FullTextRequest;
 import io.github.cnadjim.dynamic.search.spring.starter.request.PageRequest;
 import io.github.cnadjim.dynamic.search.spring.starter.request.SearchRequest;
 import io.github.cnadjim.dynamic.search.spring.starter.request.SortRequest;
@@ -44,11 +45,14 @@ public final class SearchRequestMapper {
                 .map(SearchRequestMapper::toSortCriteria)
                 .collect(Collectors.toList());
 
+        FullTextCriteria fullTextCriteria = toFullTextCriteria(request.getFullText());
+
         PageCriteria pageCriteria = toDomain(request.getPage());
 
         return SearchCriteria.builder()
                 .filters(filters)
                 .sorts(sorts)
+                .fullTextCriteria(fullTextCriteria)
                 .pageCriteria(pageCriteria)
                 .build();
     }
@@ -77,6 +81,16 @@ public final class SearchRequestMapper {
         return SortCriteria.builder()
                 .key(request.key())
                 .direction(request.direction().toDomain())
+                .build();
+    }
+
+    private static FullTextCriteria toFullTextCriteria(FullTextRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        return FullTextCriteria.builder()
+                .query(request.query())
                 .build();
     }
 

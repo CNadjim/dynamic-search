@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dynamic-search-example
+
+  # Configuration PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dynamic_search
+    username: admin
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+
+  # Configuration JPA
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
+
+  # Configuration MongoDB
+  data:
+    mongodb:
+      uri: mongodb://admin:admin123@localhost:27017/dynamic_search?authSource=admin
+      auto-index-creation: true
+
+  # Configuration Elasticsearch
+  elasticsearch:
+    uris: http://localhost:9200
+
+# Initialisation des données
+app:
+  data:
+    init:
+      enabled: true
+      size: 10000  # Nombre d'enregistrements à créer
+
+# Swagger UI
+springdoc:
+  swagger-ui:
+    enabled: true
+    use-root-path: false
+    path: /swagger-ui.html

@@ -14,4 +14,8 @@ public interface GetFieldTypeUseCase {
     }
 
     <T> Optional<FieldType> findFieldTypeByKey(String key, Class<T> entityClass);
+
+    default  <T> boolean isFieldTypeString(String key, Class<T> entityClass) {
+        return findFieldTypeByKey(key, entityClass).map(FieldType.STRING::equals).orElse(false);
+    }
 }

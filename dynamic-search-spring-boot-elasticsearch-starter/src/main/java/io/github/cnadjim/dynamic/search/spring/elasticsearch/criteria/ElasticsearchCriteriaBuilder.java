@@ -3,7 +3,10 @@ package io.github.cnadjim.dynamic.search.spring.elasticsearch.criteria;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import io.github.cnadjim.dynamic.search.metadata.FilterMetadataExtractor;
+import io.github.cnadjim.dynamic.search.model.FieldType;
 import io.github.cnadjim.dynamic.search.model.FilterCriteria;
+import io.github.cnadjim.dynamic.search.model.FilterDescriptor;
 import io.github.cnadjim.dynamic.search.model.SearchCriteria;
 import io.github.cnadjim.dynamic.search.spring.starter.util.FieldTypeParser;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +14,7 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Objects.isNull;
@@ -27,23 +31,29 @@ public final class ElasticsearchCriteriaBuilder {
     }
 
     /**
-     * Construit une Query Elasticsearch à partir des critères du domaine
+     * Construit une Query Elasticsearch à partir des critères du domaine, incluant la recherche full-text
+     * @param searchCriteria Critères de recherche
+     * @param entityClass Classe de l'entité pour extraire les champs searchable
      */
     @NonNull
-    public static NativeQuery buildQuery(@Nullable SearchCriteria searchCriteria) {
+    public static NativeQuery buildQuery(@Nullable SearchCriteria searchCriteria, @NonNull Class<?> entityClass) {
         if (isNull(searchCriteria)) {
             return NativeQuery.builder().build();
         }
 
         final List<FilterCriteria> filters = searchCriteria.filters();
+        final boolean hasFilters = !filters.isEmpty();
+        final boolean hasFullText = searchCriteria.hasFullTextSearch();
 
-        if (filters.isEmpty()) {
+        // Si aucun filtre et aucune recherche full-text, retourner une query vide
+        if (!hasFilters && !hasFullText) {
             return NativeQuery.builder().build();
         }
 
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
 
-        for (FilterCriteria filter : searchCriteria.filters()) {
+        // Application des filtres standards
+        for (FilterCriteria filter : filters) {
             log.info("Filter: {} {} {}", filter.key(), filter.operator(), filter.value());
             Query query = buildCriteria(filter);
             if (query != null) {
@@ -51,9 +61,59 @@ public final class ElasticsearchCriteriaBuilder {
             }
         }
 
+        // Application de la recherche full-text si présente
+        if (hasFullText) {
+            log.info("Full-text search: {}", searchCriteria.fullText().query());
+            Query fullTextQuery = buildFullTextCriteria(searchCriteria.fullText().query(), entityClass);
+            if (fullTextQuery != null) {
+                boolQueryBuilder.must(fullTextQuery);
+            }
+        }
+
         return NativeQuery.builder()
                 .withQuery(boolQueryBuilder.build()._toQuery())
                 .build();
+    }
+
+    /**
+     * Construit un critère full-text qui cherche dans tous les champs STRING searchable
+     * Utilise une multi_match query pour rechercher dans plusieurs champs avec une recherche fuzzy
+     */
+    private static Query buildFullTextCriteria(String searchQuery, Class<?> entityClass) {
+        // Extraire les métadonnées des champs searchable
+        List<FilterDescriptor> searchableFields = FilterMetadataExtractor.extractFilters(entityClass);
+
+        // Filtrer uniquement les champs de type STRING (les seuls où on peut faire du full-text)
+        List<String> stringFields = searchableFields.stream()
+                .filter(field -> field.fieldType() == FieldType.STRING)
+                .map(FilterDescriptor::key)
+                .toList();
+
+        if (stringFields.isEmpty()) {
+            log.warn("No searchable STRING fields found for full-text search on entity: {}", entityClass.getSimpleName());
+            return null;
+        }
+
+        log.debug("Full-text search on {} fields: {}", stringFields.size(), stringFields);
+
+        // Construire une multi_match query pour rechercher dans tous les champs STRING
+        // Utilisation de wildcard pour une recherche case-insensitive et partielle
+        List<Query> fieldQueries = new ArrayList<>();
+        String wildcardValue = "*" + searchQuery.toLowerCase() + "*";
+
+        for (String fieldName : stringFields) {
+            fieldQueries.add(Query.of(q -> q.wildcard(w -> w
+                    .field(fieldName)
+                    .value(wildcardValue)
+                    .caseInsensitive(true)
+            )));
+        }
+
+        // Combiner tous les critères avec OR (should) - au moins un champ doit matcher
+        return Query.of(q -> q.bool(b -> b
+                .should(fieldQueries)
+                .minimumShouldMatch("1")
+        ));
     }
 
     /**

@@ -11,6 +11,7 @@ Support **JPA** (SQL), **MongoDB** (NoSQL) et **Elasticsearch** (Search Engine)
 ## 🎯 Fonctionnalités
 
 - ✅ **Filtrage dynamique** - 13 opérateurs (EQUALS, CONTAINS, BETWEEN, etc.)
+- ✅ **Recherche full-text** - Recherche rapide sur tous les champs STRING searchable
 - ✅ **Tri dynamique** - ASC/DESC sur n'importe quel champ
 - ✅ **Pagination** - Page et taille configurables
 - ✅ **Détection automatique des types** - Plus besoin de spécifier le fieldType
@@ -318,6 +319,152 @@ Lorsque vous utilisez l'opérateur `equals` avec une date **sans heure** (format
     }
   ]
 }
+```
+
+## 🔎 Recherche Full-Text
+
+La bibliothèque supporte maintenant la **recherche full-text** pour effectuer des recherches rapides sur tous les champs `STRING` searchable d'une entité.
+
+### Fonctionnement
+
+La recherche full-text :
+- 🔍 Cherche automatiquement dans **tous les champs de type STRING** annotés ou auto-détectés
+- 🔤 Utilise une recherche **case-insensitive** (CONTAINS)
+- ➕ Se combine avec les filtres existants via un **AND** logique
+- ⚡ Optimisée pour MongoDB avec index text (recommandé)
+
+### Exemple d'utilisation
+
+**Requête HTTP POST** `/api/operating-systems/search` :
+
+```json
+{
+  "fullText": {
+    "query": "Windows"
+  },
+  "filters": [
+    {
+      "key": "isOpenSource",
+      "operator": "equals",
+      "value": "false"
+    }
+  ],
+  "sorts": [
+    {
+      "key": "releaseDate",
+      "direction": "desc"
+    }
+  ],
+  "page": {
+    "number": 0,
+    "size": 10
+  }
+}
+```
+
+Cette requête va :
+1. Chercher "Windows" dans **tous les champs STRING** (`name`, `version`, `kernel`, etc.)
+2. **ET** filtrer pour garder uniquement `isOpenSource = false`
+3. Trier par `releaseDate` décroissant
+
+### Optimisation MongoDB - Index Text
+
+Pour optimiser les performances des recherches full-text sur MongoDB, il est **fortement recommandé** de créer des index text sur vos collections.
+
+**Option 1 : Index text sur tous les champs STRING (recommandé)**
+
+```javascript
+// MongoDB Shell
+db.operating_systems.createIndex(
+  {
+    "name": "text",
+    "version": "text",
+    "kernel": "text"
+  },
+  {
+    name: "fulltext_search_idx",
+    weights: {
+      name: 10,      // Plus de poids sur le nom
+      version: 5,    // Poids moyen sur la version
+      kernel: 1      // Poids faible sur le kernel
+    },
+    default_language: "french"  // ou "english", "none"
+  }
+);
+```
+
+**Option 2 : Index text avec wildcard (tous les champs STRING automatiquement)**
+
+```javascript
+// MongoDB Shell - Index automatique sur tous les champs texte
+db.operating_systems.createIndex(
+  { "$**": "text" },
+  {
+    name: "fulltext_search_wildcard_idx",
+    default_language: "french"
+  }
+);
+```
+
+**Vérifier les index existants :**
+
+```javascript
+db.operating_systems.getIndexes();
+```
+
+**Supprimer un index :**
+
+```javascript
+db.operating_systems.dropIndex("fulltext_search_idx");
+```
+
+> **Note** : Actuellement, l'implémentation utilise des REGEX MongoDB. Pour utiliser les index text natifs de MongoDB (`$text` operator), une évolution future est prévue.
+
+### Intégration AG Grid
+
+Pour intégrer la recherche full-text avec AG Grid, ajoutez un champ de saisie personnalisé dans votre interface :
+
+```javascript
+const [fullTextQuery, setFullTextQuery] = useState('');
+
+const onGridReady = (params) => {
+  const datasource = {
+    getRows: async (params) => {
+      const searchRequest = {
+        filters: convertAGGridFiltersToAPI(params.filterModel),
+        sorts: convertAGGridSortsToAPI(params.sortModel),
+        fullText: fullTextQuery ? { query: fullTextQuery } : null,
+        page: {
+          number: Math.floor(params.startRow / pageSize),
+          size: pageSize
+        }
+      };
+
+      const response = await fetch('/api/operating-systems/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(searchRequest)
+      });
+
+      const data = await response.json();
+      params.successCallback(data.content, data.totalElements);
+    }
+  };
+
+  params.api.setGridOption('datasource', datasource);
+};
+
+// Dans votre JSX
+<input
+  type="text"
+  placeholder="Recherche globale..."
+  value={fullTextQuery}
+  onChange={(e) => {
+    setFullTextQuery(e.target.value);
+    // Optionnel : debounce pour éviter trop de requêtes
+    gridApi.refreshInfiniteCache();
+  }}
+/>
 ```
 
 ## 🎨 Détection Automatique des Types

@@ -8,5 +8,4 @@ import java.util.List;
 public interface GetAvailableFiltersUseCase {
 
     <T> List<FilterDescriptor> getAvailableFilters(Class<T> entityClass);
-
 }

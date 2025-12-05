@@ -16,7 +16,7 @@ import java.util.List;
  * Utilise la convention camelCase pour les propriétés JSON
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = "Requête de recherche dynamique avec filtres, tris et pagination")
+@Schema(description = "Requête de recherche dynamique avec filtres, recherche full-text, tris et pagination")
 public record SearchRequest(
 
         @Schema(
@@ -34,6 +34,13 @@ public record SearchRequest(
         @Valid
         @Size(max = 10, message = "Le nombre maximum de tris est de 10")
         List<SortRequest> sorts,
+
+        @Schema(
+                description = "Critère de recherche full-text sur tous les champs STRING",
+                implementation = FullTextRequest.class
+        )
+        @Valid
+        FullTextRequest fullText,
 
         @Schema(
                 description = "Critères de pagination (number et size)",
@@ -63,6 +70,13 @@ public record SearchRequest(
      */
     public PageRequest getPage() {
         return page != null ? page : new PageRequest();
+    }
+
+    /**
+     * Getter pour le full-text (peut être null)
+     */
+    public FullTextRequest getFullText() {
+        return fullText;
     }
 
 }

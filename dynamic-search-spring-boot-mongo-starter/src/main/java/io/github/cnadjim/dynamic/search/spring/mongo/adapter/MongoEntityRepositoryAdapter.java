@@ -40,7 +40,8 @@ public class MongoEntityRepositoryAdapter<T> implements EntityRepository<T> {
     @Override
     public SearchResult<T> findByCriteria(SearchCriteria criteria) {
         // Création de la Query MongoDB à partir des critères du domaine
-        Query query = MongoCriteriaBuilder.buildQuery(criteria);
+        // Utilise la version avec entityClass pour supporter la recherche full-text
+        Query query = MongoCriteriaBuilder.buildQuery(criteria, entityClass);
 
         // Création du tri Spring Data depuis les critères de tri du domaine
         Sort sort = createSort(criteria.sorts());

@@ -1,6 +1,6 @@
 package io.github.cnadjim.dynamic.search.spring.mongo.config;
 
-import io.github.cnadjim.dynamic.search.spring.mongo.processor.SearchableDocumentRegistrationProcessor;
+import io.github.cnadjim.dynamic.search.spring.mongo.processor.SearchableMongoDocumentRegistrationProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -29,11 +29,11 @@ public class SearchableMongoBeanRegistrar implements ImportBeanDefinitionRegistr
     }
 
     /**
-     * Enregistre le SearchableDocumentRegistrationProcessor
+     * Enregistre le SearchableMongoDocumentRegistrationProcessor
      * Injecte SearchService et MongoTemplate via autowiring
      */
     private void registerProcessor(BeanDefinitionRegistry registry) {
-        String beanName = generateBeanName(SearchableDocumentRegistrationProcessor.class.getName());
+        String beanName = generateBeanName(SearchableMongoDocumentRegistrationProcessor.class.getName());
 
         if (registry.containsBeanDefinition(beanName)) {
             log.debug("Bean {} already registered, skipping", beanName);
@@ -42,7 +42,7 @@ public class SearchableMongoBeanRegistrar implements ImportBeanDefinitionRegistr
 
         try {
             GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-            beanDefinition.setBeanClass(SearchableDocumentRegistrationProcessor.class);
+            beanDefinition.setBeanClass(SearchableMongoDocumentRegistrationProcessor.class);
 
             // Injecter SearchService et MongoTemplate comme arguments du constructeur
             beanDefinition.setAutowireMode(GenericBeanDefinition.AUTOWIRE_CONSTRUCTOR);

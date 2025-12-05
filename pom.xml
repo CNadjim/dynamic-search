@@ -29,7 +29,7 @@
 		<module>dynamic-search-spring-boot-jpa-starter</module>
 		<module>dynamic-search-spring-boot-mongo-starter</module>
 		<module>dynamic-search-spring-boot-elasticsearch-starter</module>
-		<module>dynamic-search-spring-boot-jpa-example</module>
+		<module>dynamic-search-spring-boot-example</module>
 	</modules>
 
 	<dependencyManagement>
