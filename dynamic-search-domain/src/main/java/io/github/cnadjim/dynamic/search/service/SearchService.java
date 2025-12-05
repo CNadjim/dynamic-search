@@ -8,9 +8,11 @@ import io.github.cnadjim.dynamic.search.port.in.GetAvailableFiltersUseCase;
 import io.github.cnadjim.dynamic.search.port.in.RegisterEntityUseCase;
 import io.github.cnadjim.dynamic.search.port.in.SearchUseCase;
 import io.github.cnadjim.dynamic.search.port.out.EntityDescriptorStorage;
+import io.github.cnadjim.dynamic.search.port.out.EntityRepository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 public class SearchService implements SearchUseCase, GetAvailableFiltersUseCase, GetFieldTypeUseCase, RegisterEntityUseCase {
@@ -31,7 +33,7 @@ public class SearchService implements SearchUseCase, GetAvailableFiltersUseCase,
     public <T> SearchResult<T> search(SearchCriteria criteria, Class<T> entityClass) {
         return entityDescriptorStorage.findByIdAndCast(entityClass)
                 .map(entityDescriptor -> entityDescriptor.entityRepository().findByCriteria(criteria))
-                .orElseThrow(() -> new ResourceNotFoundException("Entity not registered: " + entityClass.getName()));
+                .orElseThrow(() -> new ResourceNotFoundException("EntityDescriptor", entityClass.getName()));
     }
 
     @Override
@@ -42,14 +44,13 @@ public class SearchService implements SearchUseCase, GetAvailableFiltersUseCase,
     }
 
     @Override
-    public <T> FieldType getFieldType(String fieldName, Class<T> entityClass) {
+    public <T> Optional<FieldType> findFieldTypeByKey(String key, Class<T> entityClass) {
         return entityDescriptorStorage.findById(entityClass)
                 .map(EntityDescriptor::filters)
                 .orElse(Collections.emptyList())
                 .stream()
-                .filter(filterDescriptor -> filterDescriptor.key().equals(fieldName))
+                .filter(filterDescriptor -> filterDescriptor.key().equals(key))
                 .findFirst()
-                .map(FilterDescriptor::fieldType)
-                .orElseThrow(() -> new ResourceNotFoundException("Field not found: " + fieldName + " in entity " + entityClass.getName()));
+                .map(FilterDescriptor::fieldType);
     }
 }

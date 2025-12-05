@@ -1,7 +1,7 @@
 package io.github.cnadjim.dynamic.search.spring.elasticsearch.processor;
 
 import io.github.cnadjim.dynamic.search.annotation.EnableSearchable;
-import io.github.cnadjim.dynamic.search.model.EntityRepository;
+import io.github.cnadjim.dynamic.search.port.out.EntityRepository;
 import io.github.cnadjim.dynamic.search.port.in.RegisterEntityUseCase;
 import io.github.cnadjim.dynamic.search.spring.elasticsearch.adapter.ElasticsearchEntityRepositoryAdapter;
 import lombok.extern.slf4j.Slf4j;

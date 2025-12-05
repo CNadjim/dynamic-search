@@ -48,13 +48,13 @@ public class FilterMetadataExtractor {
 
             // Ignorer les champs static, transient, final
             int modifiers = field.getModifiers();
+
             if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)) {
                 return;
             }
 
             // Ignorer les collections et maps (trop complexe à filtrer)
-            if (Collection.class.isAssignableFrom(field.getType()) ||
-                    Map.class.isAssignableFrom(field.getType())) {
+            if (Collection.class.isAssignableFrom(field.getType()) || Map.class.isAssignableFrom(field.getType())) {
                 return;
             }
 

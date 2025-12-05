@@ -1,6 +1,6 @@
 package io.github.cnadjim.dynamic.search.spring.mongo.adapter;
 
-import io.github.cnadjim.dynamic.search.model.EntityRepository;
+import io.github.cnadjim.dynamic.search.port.out.EntityRepository;
 import io.github.cnadjim.dynamic.search.model.SearchCriteria;
 import io.github.cnadjim.dynamic.search.model.SearchResult;
 import io.github.cnadjim.dynamic.search.spring.mongo.criteria.MongoCriteriaBuilder;

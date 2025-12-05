@@ -24,8 +24,8 @@ public final class SearchRequestMapper {
      * Convertit une SearchRequest REST en SearchCriteria du domaine
      * Déduit automatiquement les fieldType via le use case GetFieldTypeUseCase
      *
-     * @param request SearchRequest provenant du client
-     * @param entityClass Classe de l'entité recherchée
+     * @param request             SearchRequest provenant du client
+     * @param entityClass         Classe de l'entité recherchée
      * @param getFieldTypeUseCase Use case pour déduire les types de champs
      * @return SearchCriteria du domaine
      */
@@ -60,13 +60,8 @@ public final class SearchRequestMapper {
 
     private static FilterCriteria toFilterCriteria(FilterRequest request, Class<?> entityClass, GetFieldTypeUseCase getFieldTypeUseCase) {
         // Résolution du type de champ via le use case
-        FieldType resolvedFieldType;
-        try {
-            resolvedFieldType = getFieldTypeUseCase.getFieldType(request.key(), entityClass);
-        } catch (Exception e) {
-            // Fallback sur STRING si le champ n'est pas trouvé
-            resolvedFieldType = FieldType.STRING;
-        }
+        FieldType resolvedFieldType = getFieldTypeUseCase.findFieldTypeByKey(request.key(), entityClass)
+                .orElse(FieldType.STRING);
 
         return FilterCriteria.builder()
                 .key(request.key())

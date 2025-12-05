@@ -8,8 +8,12 @@ import io.github.cnadjim.dynamic.search.model.SearchCriteria;
 import io.github.cnadjim.dynamic.search.spring.starter.util.FieldTypeParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
+
+import static java.util.Objects.isNull;
 
 /**
  * Constructeur de critères Elasticsearch - Construction des requêtes dynamiques
@@ -25,14 +29,20 @@ public final class ElasticsearchCriteriaBuilder {
     /**
      * Construit une Query Elasticsearch à partir des critères du domaine
      */
-    public static NativeQuery buildQuery(SearchCriteria searchCriteria) {
-        if (searchCriteria.filters().isEmpty()) {
+    @NonNull
+    public static NativeQuery buildQuery(@Nullable SearchCriteria searchCriteria) {
+        if (isNull(searchCriteria)) {
+            return NativeQuery.builder().build();
+        }
+
+        final List<FilterCriteria> filters = searchCriteria.filters();
+
+        if (filters.isEmpty()) {
             return NativeQuery.builder().build();
         }
 
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
 
-        // Application des filtres
         for (FilterCriteria filter : searchCriteria.filters()) {
             log.info("Filter: {} {} {}", filter.key(), filter.operator(), filter.value());
             Query query = buildCriteria(filter);

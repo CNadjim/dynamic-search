@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * Implémentation par défaut du SearchGateway
  * Utilise les use cases injectés pour effectuer les opérations de recherche
- *
+ * <p>
  * Cette implémentation :
  * - Injecte directement les use cases nécessaires (SearchUseCase, GetAvailableFiltersUseCase, GetFieldTypeUseCase)
  * - Convertit automatiquement les DTOs REST en objets du domaine
@@ -37,6 +37,7 @@ public class DefaultSearchGateway implements SearchGateway {
         if (searchUseCase == null) {
             throw new IllegalArgumentException("SearchUseCase cannot be null");
         }
+
         if (getAvailableFiltersUseCase == null) {
             throw new IllegalArgumentException("GetAvailableFiltersUseCase cannot be null");
         }

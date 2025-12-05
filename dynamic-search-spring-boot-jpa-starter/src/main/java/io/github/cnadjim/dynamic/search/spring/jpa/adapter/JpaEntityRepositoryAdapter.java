@@ -2,7 +2,7 @@ package io.github.cnadjim.dynamic.search.spring.jpa.adapter;
 
 import io.github.cnadjim.dynamic.search.model.SearchCriteria;
 import io.github.cnadjim.dynamic.search.model.SearchResult;
-import io.github.cnadjim.dynamic.search.model.EntityRepository;
+import io.github.cnadjim.dynamic.search.port.out.EntityRepository;
 import io.github.cnadjim.dynamic.search.spring.starter.mapper.PageToSearchResultMapper;
 import io.github.cnadjim.dynamic.search.spring.jpa.specification.GenericSpecification;
 import org.springframework.data.domain.Page;

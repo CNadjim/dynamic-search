@@ -1,7 +1,7 @@
 package io.github.cnadjim.dynamic.search.spring.jpa.processor;
 
 import io.github.cnadjim.dynamic.search.annotation.EnableSearchable;
-import io.github.cnadjim.dynamic.search.model.EntityRepository;
+import io.github.cnadjim.dynamic.search.port.out.EntityRepository;
 import io.github.cnadjim.dynamic.search.port.in.RegisterEntityUseCase;
 import io.github.cnadjim.dynamic.search.spring.jpa.adapter.JpaEntityRepositoryAdapter;
 import jakarta.persistence.Entity;

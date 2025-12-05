@@ -9,15 +9,15 @@ import java.util.Objects;
  * Résultat paginé - Objet de valeur du domaine
  * Représentation générique d'un résultat paginé sans dépendance à Spring Data
  *
- * @param content Liste des éléments de la number courante
- * @param pageNumber Numéro de la number (commence à 0)
- * @param pageSize Taille de la number
+ * @param content       Liste des éléments de la number courante
+ * @param pageNumber    Numéro de la number (commence à 0)
+ * @param pageSize      Taille de la number
  * @param totalElements Nombre total d'éléments
- * @param totalPages Nombre total de pages
- * @param sorts Liste des critères de tri appliqués
- * @param first Indique si c'est la première number
- * @param last Indique si c'est la dernière number
- * @param empty Indique si la number est vide
+ * @param totalPages    Nombre total de pages
+ * @param sorts         Liste des critères de tri appliqués
+ * @param first         Indique si c'est la première number
+ * @param last          Indique si c'est la dernière number
+ * @param empty         Indique si la number est vide
  */
 public record SearchResult<T>(
         List<T> content,
@@ -98,8 +98,7 @@ public record SearchResult<T>(
         }
 
         public SearchResult<T> build() {
-            return new SearchResult<>(content, pageNumber, pageSize, totalElements,
-                    totalPages, sorts, first, last, empty);
+            return new SearchResult<>(content, pageNumber, pageSize, totalElements, totalPages, sorts, first, last, empty);
         }
     }
 
